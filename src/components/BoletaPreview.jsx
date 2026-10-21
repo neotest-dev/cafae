@@ -1,13 +1,13 @@
-import { useEffect, useRef } from 'react'
-import { LoaderIcon, UploadIcon } from './Icons'
+import { useEffect, useRef, useState } from 'react'
+import { FileSpreadsheet, LoaderCircle, Minus, Plus, RotateCcw, Upload } from 'lucide-react'
 
 function DropZone({ fileName, isDragging, isLoading, onFileChange, setIsDragging }) {
   return (
     <label
-      className={`group mx-auto flex w-full max-w-xl cursor-pointer flex-col items-center justify-center rounded-[2rem] border-2 border-dashed px-8 py-12 text-center transition ${
+      className={`group mx-auto flex min-h-72 w-full max-w-2xl cursor-pointer flex-col items-center justify-center border-2 border-dashed px-6 py-10 text-center transition ${
         isDragging
-          ? 'border-blue-500 bg-blue-50 shadow-[0_25px_70px_-35px_rgba(59,130,246,0.6)]'
-          : 'border-slate-300 bg-white/90 shadow-[0_25px_70px_-35px_rgba(15,23,42,0.35)] backdrop-blur'
+          ? 'border-[#2978b5] bg-[#e7f4ff]'
+          : 'border-[#9bb2c5] bg-white hover:border-[#4383b2] hover:bg-[#f7fbff]'
       }`}
       onDragEnter={(event) => {
         event.preventDefault()
@@ -28,24 +28,22 @@ function DropZone({ fileName, isDragging, isLoading, onFileChange, setIsDragging
         onFileChange(event.dataTransfer.files?.[0])
       }}
     >
-      <div className={`flex h-20 w-20 items-center justify-center rounded-[1.7rem] ${
-        isDragging ? 'bg-blue-600 text-white' : 'bg-slate-900 text-white'
+      <div className={`flex h-16 w-16 items-center justify-center border shadow-sm ${
+        isDragging ? 'border-[#286c9e] bg-[#cce8fb] text-[#075a9c]' : 'border-[#9eb4c5] bg-[#e8f2f9] text-[#326b94]'
       }`}>
-        {isLoading ? <LoaderIcon className="h-9 w-9 animate-spin" /> : <UploadIcon className="h-9 w-9" />}
+        {isLoading ? <LoaderCircle className="h-8 w-8 animate-spin" /> : <FileSpreadsheet className="h-8 w-8" />}
       </div>
 
-      <p className="mt-6 text-xs font-black uppercase tracking-[0.28em] text-slate-500">
-        {isDragging ? 'Suelta el archivo aquí' : 'Arrastra tu archivo Excel'}
-      </p>
-      <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-900">
-        Genera boletas sin perder tiempo
+      <h2 className="mt-4 text-[17px] font-semibold text-[#164d75]">
+        {isDragging ? 'Suelte el archivo para procesarlo' : 'No hay información cargada'}
       </h2>
-      <p className="mt-3 max-w-lg text-sm leading-6 text-slate-500">
-        Carga tu archivo, revisa cada registro, busca por DNI, filtra por establecimiento e imprime o exporta a PDF.
+      <p className="mt-1.5 max-w-lg text-[12px] leading-5 text-slate-600">
+        Arrastre aquí el archivo Excel de boletas o utilice el botón para seleccionarlo desde su equipo.
       </p>
 
-      <div className="mt-6 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-600">
-        {isLoading ? 'Procesando archivo...' : fileName || 'o haz clic aquí para seleccionarlo'}
+      <div className="classic-button mt-5">
+        {isLoading ? <LoaderCircle size={15} className="animate-spin" /> : <Upload size={15} />}
+        {isLoading ? 'Procesando archivo...' : fileName || 'Seleccionar archivo...'}
       </div>
 
       <input
@@ -61,8 +59,11 @@ function DropZone({ fileName, isDragging, isLoading, onFileChange, setIsDragging
   )
 }
 
-function EditableBoleta({ boletaHtml, highlightDniSignal, onChange, onReset }) {
+function EditableBoleta({ boletaHtml, highlightDniSignal, onChange, onReset, zoom }) {
   const ref = useRef(null)
+  const viewportRef = useRef(null)
+  const panRef = useRef(null)
+  const [isPanning, setIsPanning] = useState(false)
 
   useEffect(() => {
     if (!ref.current) return
@@ -88,31 +89,75 @@ function EditableBoleta({ boletaHtml, highlightDniSignal, onChange, onReset }) {
     return () => window.clearTimeout(timeoutId)
   }, [highlightDniSignal])
 
+  function startPan(event) {
+    if (event.button !== 0 || event.target.closest('button')) return
+    panRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      scrollLeft: viewportRef.current.scrollLeft,
+      scrollTop: viewportRef.current.scrollTop,
+      moved: false,
+    }
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  function movePan(event) {
+    if (!panRef.current || !viewportRef.current) return
+    const deltaX = event.clientX - panRef.current.x
+    const deltaY = event.clientY - panRef.current.y
+    if (Math.abs(deltaX) + Math.abs(deltaY) > 3) {
+      panRef.current.moved = true
+      setIsPanning(true)
+      event.preventDefault()
+      window.getSelection()?.removeAllRanges()
+      viewportRef.current.scrollLeft = panRef.current.scrollLeft - deltaX
+      viewportRef.current.scrollTop = panRef.current.scrollTop - deltaY
+    }
+  }
+
+  function stopPan() {
+    panRef.current = null
+    setIsPanning(false)
+  }
+
   return (
     <>
-      <div className="border-b border-slate-200 bg-amber-50 px-6 py-3 text-xs font-semibold text-amber-900">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex min-h-11 items-center border-b border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-900">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span>
-            Puedes editar directamente esta boleta. Lo que corrijas aqui tambien se usara al imprimir y al exportar PDF.
+            Modo edición activo. Los cambios se aplicarán a la impresión y exportación PDF.
           </span>
           <button
             type="button"
             onClick={onReset}
-            className="rounded-full border border-amber-300 bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-amber-900 transition hover:bg-amber-100"
+            className="classic-button !min-h-8 !py-1"
           >
-            Restaurar original
+            <RotateCcw size={14} /> Restaurar original
           </button>
         </div>
       </div>
-      <div className="h-full overflow-auto px-5 py-5 sm:px-6 sm:py-5 lg:px-6 xl:px-7">
+      <div
+        ref={viewportRef}
+        className={`min-h-0 flex-1 overflow-auto bg-slate-100 p-3 touch-none sm:p-6 ${isPanning ? 'select-none' : ''}`}
+        onPointerDown={startPan}
+        onPointerMove={movePan}
+        onPointerUp={stopPan}
+        onPointerCancel={stopPan}
+        onLostPointerCapture={stopPan}
+      >
         <div
-          ref={ref}
-          contentEditable
-          suppressContentEditableWarning
-          spellCheck={false}
-          onInput={(event) => onChange(event.currentTarget.innerHTML, event.currentTarget.innerText)}
-          className="font-boleta min-h-full w-fit min-w-[72ch] max-w-[72ch] bg-transparent p-4 text-[12px] leading-relaxed whitespace-pre text-black outline-none sm:p-5 sm:text-[12.5px] [&_*]:text-black [&_*]:font-bold"
-        />
+          style={{ zoom: `${zoom}%` }}
+          className="mx-auto w-full max-w-[900px]"
+        >
+          <div
+            ref={ref}
+            contentEditable
+            suppressContentEditableWarning
+            spellCheck={false}
+            onInput={(event) => onChange(event.currentTarget.innerHTML, event.currentTarget.innerText)}
+            className="font-boleta box-border min-h-[1272px] w-full cursor-text rounded-sm border border-slate-200 bg-white p-7 text-[15px] leading-[1.8] whitespace-pre-wrap break-words text-black shadow-[0_8px_24px_rgba(15,23,42,0.12)] outline-none sm:p-10 sm:text-base [&_*]:max-w-full [&_*]:text-black [&_*]:font-bold"
+          />
+        </div>
       </div>
     </>
   )
@@ -129,27 +174,61 @@ function BoletaPreview({
   previewIsDragging,
   setPreviewIsDragging,
 }) {
+  const [zoom, setZoom] = useState(90)
+
+  function changeZoom(amount) {
+    setZoom((currentZoom) => Math.min(150, Math.max(60, currentZoom + amount)))
+  }
+
   return (
-    <section className="order-2 h-full min-w-0 lg:order-1 lg:justify-self-start xl:max-w-[780px]">
-      <div className="flex h-full min-h-[620px] flex-col overflow-hidden rounded-[2rem] border border-slate-300 bg-white shadow-[0_20px_50px_-12px_rgba(15,23,42,0.18)] lg:min-h-0">
-        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-100/80 px-6 py-3">
-          <div className="flex gap-2">
-            <span className="h-3 w-3 rounded-full bg-red-400" />
-            <span className="h-3 w-3 rounded-full bg-amber-400" />
-            <span className="h-3 w-3 rounded-full bg-emerald-400" />
+    <section className="order-2 flex min-h-[560px] min-w-0 flex-col lg:order-1 lg:min-h-0">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="classic-titlebar justify-between gap-3">
+          <span>Vista previa de boleta</span>
+          <div className="flex items-center gap-1.5">
+            <span className="mr-1 hidden font-normal sm:inline">A4 · {zoom}%</span>
+            <button
+              type="button"
+              onClick={() => changeZoom(-10)}
+              disabled={zoom <= 60}
+              aria-label="Alejar boleta"
+              title="Alejar"
+              className="classic-icon-button !h-8 !w-8"
+            >
+              <Minus size={16} />
+            </button>
+            <span className="w-11 text-center text-xs tabular-nums sm:hidden">{zoom}%</span>
+            <button
+              type="button"
+              onClick={() => changeZoom(10)}
+              disabled={zoom >= 150}
+              aria-label="Acercar boleta"
+              title="Acercar"
+              className="classic-icon-button !h-8 !w-8"
+            >
+              <Plus size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setZoom(90)}
+              disabled={zoom === 90}
+              aria-label="Restablecer zoom"
+              title="Restablecer zoom"
+              className="classic-icon-button !h-8 !w-8"
+            >
+              <RotateCcw size={14} />
+            </button>
           </div>
-          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
-            Vista de Pre-impresión A4
-          </span>
         </div>
 
-        <div className="relative flex-1 overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
+        <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-100">
           {boletaHtml ? (
             <EditableBoleta
               boletaHtml={boletaHtml}
               highlightDniSignal={highlightDniSignal}
               onChange={onBoletaChange}
               onReset={onResetBoleta}
+              zoom={zoom}
             />
           ) : (
             <div className="flex h-full items-center justify-center p-6 sm:p-10">

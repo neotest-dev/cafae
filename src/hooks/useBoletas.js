@@ -3,6 +3,27 @@ import { generarBoleta, generarDocumentoImpresion } from '../utils/boletaGenerat
 import { parseExcelFile } from '../utils/excelParser'
 import { generarPDF } from '../utils/pdfGenerator'
 
+function textoBoletaParaPdf(html) {
+  let content = String(html || '')
+  const selloRegex = /<div\b[^>]*data-boleta-sello=["']true["'][^>]*>[\s\S]*?<\/div>/i
+  const tieneSello = selloRegex.test(content)
+
+  if (tieneSello) {
+    content = content.replace(selloRegex, '\n[[SELLO]]\n')
+  }
+
+  let text = content
+    .replace(/<br\s*\/?\s*>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+
+  if (!tieneSello) {
+    text = text.replace(/(INCENTIVO UNICO[^\n]*(?:\n|$))/, '$1\n[[SELLO]]\n')
+  }
+
+  return text
+}
+
 export function useBoletas() {
   const [data, setData] = useState([])
   const [dataFiltrada, setDataFiltrada] = useState([])
@@ -201,8 +222,8 @@ export function useBoletas() {
 
     try {
       setIsExportingPdf(true)
-      const html = editedBoletas[currentRecord.NumeroBoleta]
-      const text = html?.text || currentBoleta.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '')
+      const html = editedBoletas[currentRecord.NumeroBoleta]?.html || currentBoleta
+      const text = textoBoletaParaPdf(html)
       await generarPDF([text], `boleta-${currentRecord.DNI || currentRecord.NumeroBoleta}.pdf`)
       showToast('PDF actual generado', 'success')
     } catch {
@@ -219,10 +240,10 @@ export function useBoletas() {
       setIsExportingPdf(true)
       const pages = dataFiltrada.map((record) => {
         const edited = editedBoletas[record.NumeroBoleta]
-        if (edited?.text) return edited.text
+        if (edited?.html) return textoBoletaParaPdf(edited.html)
 
         const html = generarBoleta(record, fechaTexto)
-        return html.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '')
+        return textoBoletaParaPdf(html)
       })
       await generarPDF(pages, `boletas-${fechaTexto || 'cafae'}.pdf`)
       showToast('PDF de boletas generado', 'success')

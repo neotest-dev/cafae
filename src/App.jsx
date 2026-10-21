@@ -49,13 +49,11 @@ function App() {
   const esFiltroActivo = establecimientoSeleccionado !== 'TODOS'
 
   return (
-    <>
-      <div className="h-2 w-full bg-gradient-to-r from-red-600 via-red-500 to-red-600" />
-
-      <div className="mx-auto flex min-h-screen w-full max-w-[1400px] flex-col px-3 py-3 sm:px-4 md:px-5 xl:px-6">
+    <div className="min-h-screen bg-slate-100 p-0 text-slate-800 sm:p-2">
+      <div className="mx-auto flex min-h-screen w-full max-w-[1800px] flex-col overflow-hidden rounded-none border border-slate-200 bg-white shadow-[0_12px_40px_rgba(15,38,64,0.1)] sm:h-[calc(100dvh-1rem)] sm:min-h-0 sm:rounded-xl">
         <Header period={fechaTexto} recordCount={recordCount} />
 
-        <main className="mt-4 grid flex-1 grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_420px] xl:grid-cols-[minmax(0,760px)_540px]">
+        <main className="grid min-h-0 w-full flex-1 grid-cols-1 gap-3 bg-slate-50 p-3 sm:p-4 lg:grid-cols-[minmax(0,1fr)_350px] lg:overflow-hidden">
           <BoletaPreview
             boletaHtml={currentBoleta}
             fileName={fileName}
@@ -68,8 +66,11 @@ function App() {
             setPreviewIsDragging={setPreviewIsDragging}
           />
 
-          <aside className="order-1 lg:order-2 lg:sticky lg:top-3 lg:w-full lg:justify-self-start">
-            <div className="grid grid-cols-1 items-stretch gap-3 2xl:grid-cols-2">
+          <aside className="order-1 grid min-h-0 w-full min-w-0 grid-cols-1 content-start gap-2.5 overflow-y-auto lg:order-2 lg:flex lg:flex-col lg:overflow-y-auto">
+            <section className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm lg:shrink-0">
+              <h2 className="border-b border-slate-100 pb-2 text-sm font-semibold text-slate-800">
+                Opciones de consulta
+              </h2>
               <UploadPanel
                 fileName={fileName}
                 isLoading={isLoading}
@@ -84,40 +85,33 @@ function App() {
                 onSearchTextChange={setEstablishmentText}
                 onSelect={setSelectedEstablishment}
               />
-              <NavigationPanel
-                canGoFirst={hasData && !esPrimero && !esFiltroActivo}
-                canGoLast={hasData && !esUltimo && !esFiltroActivo}
-                canGoNext={hasData && !esUltimo}
-                canGoPrevious={hasData && !esPrimero}
-                onFirst={() => goTo(0)}
-                onLast={() => goTo(dataFiltrada.length - 1)}
-                onNext={next}
-                onPrevious={previous}
-                regActual={regActual}
-              />
-              <div className="2xl:col-span-2">
-                <ActionPanel
-                  disabled={!hasData}
-                  isExportingPdf={isExportingPdf}
-                  onDownloadPDFAll={downloadAllPDF}
-                  onDownloadPDFCurrent={downloadCurrentPDF}
-                  onPrintAll={printAll}
-                  onPrintCurrent={printCurrent}
-                />
-              </div>
-            </div>
+            </section>
+            <NavigationPanel
+              canGoFirst={hasData && !esPrimero && !esFiltroActivo}
+              canGoLast={hasData && !esUltimo && !esFiltroActivo}
+              canGoNext={hasData && !esUltimo}
+              canGoPrevious={hasData && !esPrimero}
+              onFirst={() => goTo(0)}
+              onLast={() => goTo(dataFiltrada.length - 1)}
+              onNext={next}
+              onPrevious={previous}
+              regActual={regActual}
+            />
+            <ActionPanel
+              disabled={!hasData}
+              isExportingPdf={isExportingPdf}
+              onDownloadPDFAll={downloadAllPDF}
+              onDownloadPDFCurrent={downloadCurrentPDF}
+              onPrintAll={printAll}
+              onPrintCurrent={printCurrent}
+            />
           </aside>
         </main>
 
-        <footer className="mt-4 border-t border-slate-200 py-4 text-center">
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-500">
-            © 2026 • CAFAE - UGEL04 TSE
-          </p>
-        </footer>
       </div>
 
       <Toast message={toast?.message} onClose={closeToast} type={toast?.type} />
-    </>
+    </div>
   )
 }
 

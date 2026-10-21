@@ -1,4 +1,4 @@
-import { DownloadIcon, FileTextIcon, PrinterIcon } from './Icons'
+import { Download, FileStack, LoaderCircle, Printer } from 'lucide-react'
 
 function ActionButton({ colorClass, disabled, onClick, children }) {
   return (
@@ -6,58 +6,51 @@ function ActionButton({ colorClass, disabled, onClick, children }) {
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className={`w-full rounded-2xl px-4 py-3 text-[13px] font-extrabold tracking-[0.06em] text-white shadow-lg transition disabled:grayscale disabled:opacity-50 ${colorClass}`}
+      className={`classic-action-button ${colorClass}`}
     >
-      <span className="flex items-center justify-center gap-2">{children}</span>
+      {children}
     </button>
   )
 }
 
-function ActionPanel({ disabled, isExportingPdf, onDownloadPDFAll, onDownloadPDFCurrent, onPrintAll, onPrintCurrent }) {
+function ActionPanel({ disabled, isExportingPdf, onDownloadPDFAll, onDownloadPDFCurrent, onPrintAll, onPrintCurrent, className = '' }) {
   return (
-    <section className="space-y-3 rounded-[1.6rem] border border-slate-200 bg-white p-4 shadow-md shadow-slate-200/60">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <div>
-          <h3 className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-900">
-            Acciones
-          </h3>
-          <p className="mt-1 text-[11px] text-slate-500">
-            Imprime o exporta las boletas seleccionadas.
-          </p>
-        </div>
+    <section className={`classic-panel ${className}`}>
+      <div className="flex items-center px-3 pb-2 pt-3">
+        <span className="text-xs font-semibold text-slate-700">Acciones</span>
       </div>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+      <div className="grid grid-cols-2 gap-1.5 px-3 pb-3">
         <ActionButton
-          colorClass="bg-emerald-600 shadow-emerald-100 hover:bg-emerald-700"
+          colorClass=""
           disabled={disabled}
           onClick={onPrintCurrent}
         >
-          <PrinterIcon className="h-4 w-4" />
-          IMPRIMIR ACTUAL
+          <Printer size={19} className="shrink-0 rounded-md bg-blue-50 p-1 text-blue-700" />
+          Imprimir actual
         </ActionButton>
         <ActionButton
-          colorClass="bg-sky-500 shadow-sky-100 hover:bg-sky-600"
+          colorClass=""
           disabled={disabled}
           onClick={onPrintAll}
         >
-          <FileTextIcon className="h-4 w-4" />
-          IMPRIMIR TODAS
+          <FileStack size={19} className="shrink-0 rounded-md bg-cyan-50 p-1 text-cyan-700" />
+          Imprimir todas
         </ActionButton>
         <ActionButton
-          colorClass="bg-violet-600 shadow-violet-100 hover:bg-violet-700"
+          colorClass=""
           disabled={disabled || isExportingPdf}
           onClick={onDownloadPDFCurrent}
         >
-          <DownloadIcon className="h-4 w-4" />
-          PDF ACTUAL
+          {isExportingPdf ? <LoaderCircle size={19} className="shrink-0 animate-spin rounded-md bg-violet-50 p-1 text-violet-700" /> : <Download size={19} className="shrink-0 rounded-md bg-violet-50 p-1 text-violet-700" />}
+          PDF actual
         </ActionButton>
         <ActionButton
-          colorClass="bg-fuchsia-600 shadow-fuchsia-100 hover:bg-fuchsia-700"
+          colorClass=""
           disabled={disabled || isExportingPdf}
           onClick={onDownloadPDFAll}
         >
-          <DownloadIcon className="h-4 w-4" />
-          PDF TODAS
+          {isExportingPdf ? <LoaderCircle size={19} className="shrink-0 animate-spin rounded-md bg-fuchsia-50 p-1 text-fuchsia-700" /> : <FileStack size={19} className="shrink-0 rounded-md bg-fuchsia-50 p-1 text-fuchsia-700" />}
+          PDF todas
         </ActionButton>
       </div>
     </section>

@@ -2,6 +2,7 @@ import { formatMonto, nroBoleta, separarNombre } from './helpers'
 
 export const BOLETA_SEPARATOR = '='.repeat(78)
 export const BOLETA_DASH_SEPARATOR = '-'.repeat(78)
+const SELLO_URL = `${import.meta.env.BASE_URL}SELLO.png`
 
 function line(label, value, field) {
   const content = `${label}     :     ${value}`
@@ -62,7 +63,7 @@ ${BOLETA_SEPARATOR}
 <span>INCENTIVO UNICO</span>
 <span>S/. ${boleta.monto}</span>
 </div>
-<br>
+<div class="boleta-sello" data-boleta-sello="true"><img src="${SELLO_URL}" alt="Sello y firma de visto bueno" /></div>
 ${BOLETA_SEPARATOR}
 
 Leyenda:
@@ -93,6 +94,20 @@ export function generarDocumentoImpresion(contenido) {
           }
           div { position: relative; }
           span { color: #000; }
+          .boleta-sello {
+            display: flex;
+            width: 85%;
+            height: 32mm;
+            align-items: center;
+            justify-content: center;
+          }
+          .boleta-sello img {
+            display: block;
+            width: 80mm;
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+          }
           @media print {
             body { margin: 10px; }
             img { -webkit-print-color-adjust: exact; print-color-adjust: exact; }

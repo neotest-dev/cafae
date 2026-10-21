@@ -1,14 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Inter', sans-serif;
+  --font-sans: 'Segoe UI', Tahoma, Arial, sans-serif;
   --font-boleta: 'JetBrains Mono', monospace;
 }
 
 :root {
-  font-family: 'Inter', sans-serif;
-  color: #0f172a;
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  color: #1e293b;
   background: #f1f5f9;
   font-size: 16px;
   font-synthesis: none;
@@ -21,10 +21,7 @@ body {
   margin: 0;
   min-height: 100vh;
   overflow-x: hidden;
-  background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.95), transparent 24%),
-    radial-gradient(circle at right top, rgba(59, 130, 246, 0.12), transparent 28%),
-    linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  background: #f1f5f9;
 }
 
 button,
@@ -62,14 +59,77 @@ select {
   }
 }
 
-main > * {
-  animation: fadeInUp 0.35s ease-out both;
-}
-
 .boleta-highlight {
   display: inline-block;
   border-radius: 8px;
   background: #fef3c7;
   box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
   transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+[contenteditable='true'] span {
+  overflow-wrap: anywhere;
+}
+
+[contenteditable='true'] div[style*='display: flex'] {
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+[contenteditable='true'] .boleta-sello {
+  display: flex;
+  width: 85%;
+  height: 32mm;
+  align-items: center;
+  justify-content: center;
+}
+
+[contenteditable='true'] .boleta-sello img {
+  display: block;
+  width: 80mm;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+@layer components {
+  .classic-panel {
+    @apply overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm;
+  }
+
+  .classic-titlebar {
+    @apply flex min-h-11 items-center border-b border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700;
+  }
+
+  .classic-menu-item {
+    @apply flex shrink-0 items-center gap-2 rounded-md border border-transparent px-3 py-2 text-slate-600 transition hover:border-slate-200 hover:bg-white hover:text-blue-700;
+  }
+
+  .classic-form-group {
+    @apply min-w-0 text-[14px];
+  }
+
+  .classic-label {
+    @apply mb-1.5 block text-sm font-semibold text-slate-700;
+  }
+
+  .classic-helper {
+    @apply mt-1 truncate text-[11px] text-slate-500;
+  }
+
+  .classic-input {
+    @apply h-9 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10;
+  }
+
+  .classic-button {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45;
+  }
+
+  .classic-icon-button {
+    @apply flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-30;
+  }
+
+  .classic-action-button {
+    @apply flex min-h-10 w-full min-w-0 items-center justify-start gap-2 rounded-lg border border-slate-200 bg-white px-2 py-2 text-left text-xs font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40;
+  }
 }

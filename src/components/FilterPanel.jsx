@@ -1,4 +1,5 @@
-import { FilterIcon, XIcon } from './Icons'
+import { useState } from 'react'
+import { Check, ChevronDown, Filter, X } from 'lucide-react'
 
 function FilterPanel({
   establishments,
@@ -7,55 +8,93 @@ function FilterPanel({
   onSearchTextChange,
   onSelect,
 }) {
-  return (
-    <section className="h-full rounded-[1.6rem] border border-slate-200 bg-white p-4 shadow-md shadow-slate-200/60">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div>
-          <h3 className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-900">
-            Filtrar por Establecimiento
-          </h3>
-          <p className="mt-1 text-[11px] leading-5 text-slate-500">
-            Reduce la lista por texto o por selección directa.
-          </p>
-        </div>
-        <div className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
-          Filtro
-        </div>
-      </div>
+  const [isOpen, setIsOpen] = useState(false)
 
-      <div className="rounded-[1.4rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] p-3 shadow-inner shadow-slate-200/50">
+  function chooseEstablishment(value) {
+    onSelect(value)
+    setIsOpen(false)
+  }
+
+  return (
+    <section className="w-full min-w-0 space-y-1.5">
+      <label className="block text-xs font-semibold text-slate-700">Filtrar establecimiento</label>
+      <div className="grid min-w-0 gap-2">
         <div className="relative">
-          <FilterIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Filter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={searchText}
             onChange={(event) => onSearchTextChange(event.target.value)}
             placeholder="Buscar establecimiento..."
-            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-9 pr-9 text-sm font-semibold text-slate-800 outline-none transition focus:ring-2 focus:ring-blue-500/20"
+            className="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-9 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
           />
           {searchText ? (
             <button
               type="button"
               onClick={() => onSearchTextChange('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 transition hover:bg-slate-200 hover:text-slate-700"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+              aria-label="Limpiar filtro"
             >
-              <XIcon className="h-4 w-4" />
+              <X className="h-4 w-4" />
             </button>
           ) : null}
         </div>
 
-        <select
-          value={selectedEstablishment}
-          onChange={(event) => onSelect(event.target.value)}
-          className="mt-3 w-full cursor-pointer rounded-[1rem] border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+        <div
+          className="relative min-w-0"
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) setIsOpen(false)
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') setIsOpen(false)
+          }}
         >
-          <option value="TODOS">MOSTRAR TODOS</option>
-          {establishments.map((establishment) => (
-            <option key={establishment} value={establishment}>
-              {establishment}
-            </option>
-          ))}
-        </select>
+          <button
+            type="button"
+            aria-haspopup="listbox"
+            aria-expanded={isOpen}
+            onClick={() => setIsOpen((open) => !open)}
+            className="flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-slate-300 bg-white px-3 text-left text-sm text-slate-700 transition hover:border-slate-400 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
+          >
+            <span className="truncate">{selectedEstablishment === 'TODOS' ? 'Todos los establecimientos' : selectedEstablishment}</span>
+            <ChevronDown size={16} className={`shrink-0 text-slate-400 transition ${isOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {isOpen ? (
+            <div
+              role="listbox"
+              aria-label="Establecimientos disponibles"
+              className="absolute inset-x-0 top-[calc(100%+6px)] z-30 max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-900/10"
+            >
+              <button
+                type="button"
+                role="option"
+                aria-selected={selectedEstablishment === 'TODOS'}
+                onClick={() => chooseEstablishment('TODOS')}
+                className={`flex min-h-9 w-full items-center justify-between gap-2 rounded-lg px-2.5 text-left text-sm transition hover:bg-slate-50 ${selectedEstablishment === 'TODOS' ? 'bg-blue-50 font-semibold text-blue-700' : 'text-slate-700'}`}
+              >
+                <span>Todos los establecimientos</span>
+                {selectedEstablishment === 'TODOS' ? <Check size={15} /> : null}
+              </button>
+              {establishments.map((establishment) => (
+                <button
+                  key={establishment}
+                  type="button"
+                  role="option"
+                  aria-selected={selectedEstablishment === establishment}
+                  onClick={() => chooseEstablishment(establishment)}
+                  title={establishment}
+                  className={`flex min-h-9 w-full items-center justify-between gap-2 rounded-lg px-2.5 text-left text-sm transition hover:bg-slate-50 ${selectedEstablishment === establishment ? 'bg-blue-50 font-semibold text-blue-700' : 'text-slate-700'}`}
+                >
+                  <span className="truncate">{establishment}</span>
+                  {selectedEstablishment === establishment ? <Check size={15} className="shrink-0" /> : null}
+                </button>
+              ))}
+              {establishments.length === 0 ? (
+                <p className="px-2.5 py-3 text-xs text-slate-500">No hay establecimientos con ese texto.</p>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
       </div>
     </section>
   )
